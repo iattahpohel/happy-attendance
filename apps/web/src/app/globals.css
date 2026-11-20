@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --color-cream: #fff8ee;
+  --color-paper: #ffffff;
+  --color-ink: #2f2a24;
+  --color-muted: #8a8075;
+  --color-line: #f0e6d8;
+  --color-sun: #ffc94a;
+  --color-sun-soft: #fff1c7;
+  --color-leaf: #4caf72;
+  --color-leaf-soft: #ddf4e4;
+  --color-sky: #6bbcec;
+  --color-sky-soft: #ddf0fb;
+  --color-coral: #ff8a7a;
+  --color-coral-soft: #ffe4df;
+  --color-lavender: #a48df0;
+  --color-lavender-soft: #eee8ff;
+  --color-night: #2b2d5c;
+  --radius-4xl: 2rem;
+  --shadow-soft: 0 6px 24px -10px rgb(120 90 40 / 0.18);
+  --shadow-pop: 0 10px 0 -2px rgb(0 0 0 / 0.08);
+}
+
+html,
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+@utility card {
+  @apply rounded-3xl bg-paper shadow-soft border border-line/70;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 font-bold transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+}
+@utility btn-primary {
+  @apply btn bg-ink text-white hover:bg-ink/90;
+}
+@utility btn-soft {
+  @apply btn bg-cream text-ink hover:bg-line;
+}
+@utility btn-leaf {
+  @apply btn bg-leaf text-white hover:bg-leaf/90;
+}
+
+@utility input {
+  @apply w-full rounded-2xl border border-line bg-white px-4 py-2.5 outline-none transition focus:border-sun focus:ring-4 focus:ring-sun/25;
+}
+
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 3.2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.animate-twinkle {
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

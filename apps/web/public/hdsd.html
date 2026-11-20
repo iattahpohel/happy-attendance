@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hướng dẫn sử dụng · Happy Attendance</title>
+<meta name="description" content="Hướng dẫn sử dụng Happy Attendance cho nhân viên và quản trị viên.">
+<style>
+:root{--cream:#fff8ee;--paper:#fff;--ink:#2f2a24;--muted:#8a8075;--line:#f0e6d8;--sun:#ffc94a;--sun-soft:#fff1c7;--leaf:#4caf72;--leaf-soft:#ddf4e4;--sky-soft:#ddf0fb;--coral:#ff8a7a;--coral-soft:#ffe4df;--lav-soft:#eee8ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:Nunito,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--cream);color:var(--ink);line-height:1.65}
+a{color:inherit}
+header.top{position:sticky;top:0;z-index:5;background:rgba(255,248,238,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.brand{font-weight:900;text-decoration:none}
+.bar a.btn{background:var(--ink);color:#fff;text-decoration:none;font-weight:800;border-radius:14px;padding:8px 14px;font-size:14px}
+.hero{padding:40px 0 16px}
+.hero h1{font-size:clamp(28px,5vw,42px);line-height:1.2;margin:0 0 8px;font-weight:900}
+.hero p{color:var(--muted);margin:0;max-width:600px}
+.layout{display:grid;grid-template-columns:210px 1fr;gap:28px;padding-bottom:64px}
+nav.toc{position:sticky;top:72px;align-self:start;font-size:14px}
+nav.toc a{display:block;padding:6px 10px;border-radius:10px;text-decoration:none;color:var(--muted);font-weight:700}
+nav.toc a:hover{background:var(--sun-soft);color:var(--ink)}
+section{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:24px;margin-bottom:18px;box-shadow:0 6px 24px -10px rgb(120 90 40/.18);scroll-margin-top:72px}
+h2{margin:0 0 12px;font-size:22px;font-weight:900}
+h3{margin:18px 0 6px;font-size:16px;font-weight:800}
+ol,ul{padding-left:22px;margin:8px 0}li{margin:4px 0}
+.steps{list-style:none;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;margin:10px 0}
+.steps li:before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--sun);font-weight:900;display:grid;place-items:center;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.note{border-radius:16px;padding:12px 14px;margin:12px 0;font-size:14.5px}
+.tip{background:var(--leaf-soft)}.warn{background:var(--coral-soft)}.info{background:var(--sky-soft)}
+code{background:var(--cream);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.9em}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800;background:var(--lav-soft)}
+details{border-top:1px solid var(--line);padding:10px 0}details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:800}
+details p{margin:6px 0 0;color:#5d544a}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 0 48px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}nav.toc{position:static;display:flex;flex-wrap:wrap;gap:4px}section{padding:18px}}
+
+.shot{margin:16px auto;text-align:center}
+.shot img{display:block;width:100%;height:auto;border-radius:28px;border:8px solid #2f2a24;box-shadow:0 18px 40px -16px rgb(60 40 10/.4);background:#fff}
+.shot figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+.shot.phone{max-width:260px}.shot.wide{max-width:100%}.shot.wide img{border-radius:14px;border-width:6px}
+.shots{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:start}
+.split{display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start}
+@media(max-width:820px){.shots{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap bar"><a class="brand" href="/hdsd">🌱 Happy Attendance <span style="color:var(--muted);font-weight:700">· Hướng dẫn</span></a><a class="btn" href="/">Mở ứng dụng</a></div></header>
+
+<div class="wrap">
+<div class="hero">
+<h1>Hướng dẫn sử dụng</h1>
+<p>Mỗi ngày đi làm, một niềm vui nhỏ. Tài liệu này giúp bạn bắt đầu chỉ trong vài phút, dành cho nhân viên và quản trị viên (HR).</p>
+</div>
+
+<div class="layout">
+<nav class="toc" aria-label="Mục lục">
+<a href="#bat-dau">1. Bắt đầu</a>
+<a href="#check-in">2. Check-in / out</a>
+<a href="#home">3. Trang chủ</a>
+<a href="#hanh-trinh">4. Hành trình &amp; nghỉ phép</a>
+<a href="#thanh-tuu">5. Thành tựu &amp; vật phẩm</a>
+<a href="#cong-dong">6. Cộng đồng &amp; cảm ơn</a>
+<a href="#wrapped">7. Wrapped</a>
+<a href="#admin">8. Dành cho Admin</a>
+<a href="#faq">9. Câu hỏi thường gặp</a>
+</nav>
+
+<main>
+<section id="bat-dau">
+<h2>1. Bắt đầu</h2>
+<ol class="steps">
+<li><div>Mở ứng dụng trên điện thoại hoặc máy tính, đăng nhập bằng email công ty và mật khẩu được cấp.</div></li>
+<li><div>Vào <b>Trang chủ</b>. Nhân vật của bạn sẽ chào bạn theo buổi trong ngày.</div></li>
+<li><div>Khi đến nơi làm việc, bấm nút <b>Check-in</b>. Khi tan ca, bấm <b>Check-out</b>.</div></li>
+</ol>
+<div class="note info">💡 Ứng dụng chạy tốt trên điện thoại, bạn có thể thêm vào màn hình chính để mở nhanh.</div>
+</section>
+
+<section id="check-in">
+<h2>2. Check-in và check-out</h2>
+<p>Nút check-in/out nằm ở thẻ chính của Trang chủ. Sau khi hoàn thành ngày, thẻ hiển thị giờ vào → giờ ra (xem hình ở mục 3).</p>
+<table>
+<tr><th>Tình huống</th><th>Điều gì xảy ra</th></tr>
+<tr><td>Check-in đúng lịch, trong thời gian cho phép</td><td>Ghi nhận đúng giờ, nhận XP và confetti 🎉</td></tr>
+<tr><td>Check-in muộn quá thời gian cho phép (mặc định 10 phút)</td><td>Ghi nhận là đi muộn, vẫn tính ngày làm việc. Không bị phạt.</td></tr>
+<tr><td>Quên check-out</td><td>Hệ thống tự check-out lúc <b>23:50</b></td></tr>
+<tr><td>Check-in ngoài lịch được giao</td><td>Vẫn được ghi nhận nhưng <b>không nhận XP</b> và không cộng năng lượng cho sự kiện</td></tr>
+</table>
+<div class="note tip">🌿 Ngày nghỉ phép, ngày lễ và cuối tuần không làm đứt chuỗi đều đặn của bạn.</div>
+</section>
+
+<section id="home">
+<h2>3. Trang chủ</h2>
+<div class="split"><div>
+<ul>
+<li><b>Bầu trời và nhân vật</b>: đổi theo buổi trong ngày (bình minh, ban ngày, đêm) và đổi biểu cảm.</li>
+<li><b>Vòng tiến độ tháng</b>: số ngày bạn đã hoàn thành so với lịch được giao của chính bạn.</li>
+<li><b>Chuỗi đều đặn</b>, <b>cấp độ / XP</b> và <b>khu vườn</b> lớn dần theo số ngày hoàn thành: 🌰 → 🌱 → 🌿 → 🪴 → 🌳 → 🌸.</li>
+<li><b>Sự kiện tháng</b>: tiến độ của cả công ty (xem mục 6).</li>
+<li>Chuông thông báo ở góc trên hiển thị thông báo trong app. Âm thanh có thể tắt.</li>
+</ul>
+<h3>Cấp độ</h3>
+<p>Cấp <i>n</i> cần tổng cộng <code>50 × n × (n−1)</code> XP: cấp 2 ở 100 XP, cấp 3 ở 300 XP, cấp 4 ở 600 XP… Lên cấp 2, 3, 4, 5, 7, 10 sẽ nhận vật phẩm tặng kèm.</p>
+</div><figure class="shot phone"><img src="/shots/home.png" alt="Trang chủ: nhân vật, trạng thái ngày và vòng tiến độ tháng"><figcaption>Trang chủ: nhân vật, trạng thái ngày và vòng tiến độ tháng</figcaption></figure></div>
+</section>
+
+<section id="hanh-trinh">
+<h2>4. Hành trình và xin nghỉ phép</h2>
+<p>Trang <b>Hành trình</b> hiển thị lịch tháng:</p>
+<table>
+<tr><th>Biểu tượng</th><th>Ý nghĩa</th></tr>
+<tr><td>🌼</td><td>Ngày làm việc hoàn thành</td></tr>
+<tr><td>🌴</td><td>Nghỉ phép đã duyệt</td></tr>
+<tr><td>🎉</td><td>Ngày lễ</td></tr>
+<tr><td>Màu trung tính "Chưa ghi nhận"</td><td>Ngày chưa có dữ liệu chấm công. Không hiển thị màu đỏ, không phải lỗi.</td></tr>
+</table>
+<p>Chạm vào một ngày để xem giờ vào/ra chi tiết.</p>
+<figure class="shot phone"><img src="/shots/journey.png" alt="Hành trình: lịch tháng"><figcaption>Hành trình: lịch tháng với ngày hoàn thành, nghỉ phép, lễ</figcaption></figure>
+<h3>Xin nghỉ phép</h3>
+<ol class="steps">
+<li><div>Vào <b>Hành trình</b>, chọn <b>Xin nghỉ phép</b>.</div></li>
+<li><div>Chọn ngày và nhập lý do, sau đó gửi.</div></li>
+<li><div>Chờ HR duyệt. Bạn có thể hủy yêu cầu của mình khi cần.</div></li>
+</ol>
+<div class="note tip">Ngày nghỉ đã duyệt sẽ được trừ khỏi mục tiêu tháng, nên bạn vẫn có thể đạt 🌻 <i>Một tháng trọn vẹn</i>.</div>
+</section>
+
+<section id="thanh-tuu">
+<h2>5. Thành tựu, danh hiệu và vật phẩm</h2>
+<h3>Thành tựu</h3>
+<table>
+<tr><th>Thành tựu</th><th>Điều kiện</th></tr>
+<tr><td>🌱 Khởi đầu tốt</td><td>Ngày đầu tiên chấm công</td></tr>
+<tr><td>🌿 Đều đặn</td><td>5 ngày làm việc theo lịch</td></tr>
+<tr><td>🌳 Bền bỉ</td><td>20 ngày làm việc theo lịch</td></tr>
+<tr><td>🏡 Khu vườn trăm ngày</td><td>100 ngày làm việc theo lịch</td></tr>
+<tr><td>🌻 Một tháng trọn vẹn</td><td>Hoàn thành toàn bộ lịch của bạn trong tháng</td></tr>
+<tr><td>💎 Kiên trì</td><td>≥ 90% lịch trong 3 tháng liên tiếp</td></tr>
+<tr><td>🎨 Người truyền cảm hứng</td><td>Nhận 3 lời cảm ơn</td></tr>
+<tr><td>💌 Trái tim ấm áp</td><td>Gửi 10 lời cảm ơn</td></tr>
+<tr><td>🧩 Đồng đội tận tâm</td><td>Hoàn thành 5 nhiệm vụ cộng đồng</td></tr>
+<tr><td>🛡️ Người bảo vệ thế giới</td><td>Góp sức giúp cả công ty hoàn thành sự kiện</td></tr>
+</table>
+<h3>Danh hiệu tháng</h3>
+<p>Được trao lúc chốt tháng (00:05 ngày 1):</p>
+<ul>
+<li>🏆 <b>Perfect Month</b>: hoàn thành 100% lịch</li>
+<li>🌻 <b>Steady Star</b>: ≥ 90% lịch và đi muộn ≤ 2 ngày</li>
+<li>🌱 <b>Growth Mindset</b>: tiến bộ ≥ 10 điểm % so với tháng trước, hoặc bớt đi muộn</li>
+<li>🌈 <b>Comeback Star</b>: tháng trước &lt; 70% hoặc nghỉ ≥ 5 ngày, tháng này ≥ 85%</li>
+<li>☀️ <b>Positive Energy</b>: gửi ≥ 3 lời cảm ơn</li>
+<li>💚 <b>Reliable Partner</b>: nhận ≥ 3 lời cảm ơn</li>
+</ul>
+<figure class="shot phone"><img src="/shots/achievements.png" alt="Thành tựu: tiến độ mở khóa và điều kiện từng thành tựu"><figcaption>Thành tựu: tiến độ mở khóa và điều kiện từng thành tựu</figcaption></figure><h3>Trang bị vật phẩm</h3>
+<p>Vào <b>Thành tựu → Bộ sưu tập</b>, chọn trang phục, nền, đồ trang trí vườn hoặc sticker rồi bấm <b>Trang bị</b>. Nhân vật và khu vườn trên Trang chủ sẽ đổi theo.</p>
+</section>
+
+<section id="cong-dong">
+<h2>6. Cộng đồng và lời cảm ơn</h2>
+<h3>Sự kiện tháng (World Boss)</h3>
+<p>Mỗi tháng cả công ty cùng góp <b>năng lượng</b> để đạt một mục tiêu chung (đánh boss, trồng cây, thám hiểm…). Bạn đóng góp bằng:</p>
+<table>
+<tr><th>Hành động</th><th>Năng lượng</th></tr>
+<tr><td>Hoàn thành một ngày làm việc theo lịch</td><td>+10</td></tr>
+<tr><td>Gửi lời cảm ơn (tối đa 3 lời/ngày được tính)</td><td>+3</td></tr>
+<tr><td>Mở khóa thành tựu</td><td>+15</td></tr>
+<tr><td>Hoàn thành nhiệm vụ cộng đồng</td><td>+10 đến +20</td></tr>
+</table>
+<p>Nhiệm vụ cộng đồng gồm: gửi 3 lời cảm ơn, kết nối liên team, 5 ngày vững vàng, mở khóa 1 thành tựu.</p>
+<div class="note info">Mục tiêu tự co giãn theo quy mô và lịch làm việc của công ty, được hiển thị kèm "cách tính". Về đích: mở khóa khu vực mới trên bản đồ chung, <b>mọi nhân viên</b> nhận vật phẩm kỷ niệm.</div>
+<figure class="shot phone"><img src="/shots/community.png" alt="Cộng đồng: sự kiện tháng, thanh tiến độ chung và các mốc 25/50/75/100%"><figcaption>Cộng đồng: sự kiện tháng, thanh tiến độ chung và các mốc 25/50/75/100%</figcaption></figure><h3>Gửi lời cảm ơn</h3>
+<ol class="steps">
+<li><div>Vào <b>Cộng đồng → Appreciation Wall</b>.</div></li>
+<li><div>Chọn đồng nghiệp, viết lời cảm ơn chân thành và gửi.</div></li>
+<li><div>Lời cảm ơn xuất hiện trên bảng tin chung. Người nhận được thông báo.</div></li>
+</ol>
+<div class="note warn">Chỉ <b>3 lời cảm ơn đầu tiên mỗi ngày</b> được tính điểm. Đừng gửi chỉ để lấy điểm, hãy cảm ơn khi bạn thật sự muốn.</div>
+</section>
+
+<section id="wrapped">
+<h2>7. Wrapped hàng tháng</h2>
+<p>Sau khi chốt tháng, mở <b>Wrapped</b> để xem câu chuyện của tháng vừa qua, kiểu Spotify Wrapped: so sánh với <b>chính bạn</b> tháng trước, danh hiệu nhận được, thiệp lời cảm ơn. Bạn có thể xuất ảnh PNG để chia sẻ và xem lại lịch sử các tháng.</p>
+<figure class="shot phone"><img src="/shots/wrapped.png" alt="Wrapped: câu chuyện tháng của riêng bạn"><figcaption>Wrapped: câu chuyện tháng của riêng bạn</figcaption></figure>
+</section>
+
+<section id="admin">
+<h2>8. Dành cho Admin (HR) <span class="tag">Quản trị</span></h2>
+<figure class="shot wide"><img src="/shots/admin.png" alt="Quản trị: tổng quan ngày với trạng thái từng nhân viên"><figcaption>Quản trị: tổng quan ngày với trạng thái từng nhân viên</figcaption></figure><table>
+<tr><th>Mục</th><th>Việc có thể làm</th></tr>
+<tr><td>Tổng quan ngày</td><td>Xem ai đã check-in, đi muộn, nghỉ phép trong ngày</td></tr>
+<tr><td>Nhân viên / team</td><td>Thêm, sửa, ngưng nhân viên; gán team</td></tr>
+<tr><td>Lịch làm việc</td><td>Đặt lịch cho từng người (ví dụ T2/T4/T6 cho bán thời gian)</td></tr>
+<tr><td>Nghỉ phép</td><td>Duyệt hoặc từ chối yêu cầu</td></tr>
+<tr><td>Ngày lễ</td><td>Quản lý danh sách ngày lễ của công ty</td></tr>
+<tr><td>Sự kiện</td><td>Chọn chủ đề, độ khó, bấm tính lại mục tiêu</td></tr>
+<tr><td>Chốt tháng</td><td>Chạy chốt tháng thủ công nếu cần (hệ thống tự chạy 00:05 ngày 1)</td></tr>
+<tr><td>Quy tắc thành tựu</td><td>Xem và điều chỉnh điều kiện thành tựu</td></tr>
+</table>
+<div class="note info">Mục tiêu sự kiện được tính lại tự động khi thêm hoặc ngưng nhân viên, đổi lịch, thêm ngày lễ hoặc duyệt nghỉ phép.</div>
+</section>
+
+<section id="faq">
+<h2>9. Câu hỏi thường gặp</h2>
+<details><summary>Quên check-in thì sao?</summary><p>Hãy báo HR để được điều chỉnh. Ngày chưa ghi nhận chỉ hiện màu trung tính, không bị tính là lỗi trong app.</p></details>
+<details><summary>Lịch của tôi ít ngày hơn đồng nghiệp, có thiệt không?</summary><p>Không. Mục tiêu tính theo lịch được giao của từng người, nên lịch 12 ngày và lịch 22 ngày đều có thể đạt 🌻.</p></details>
+<details><summary>Có bảng xếp hạng không?</summary><p>Không. Đóng góp cá nhân cho sự kiện chỉ chủ nhân nhìn thấy. Phần vinh danh theo danh hiệu được sắp xếp theo tên.</p></details>
+<details><summary>Làm thêm ngoài lịch có được thưởng không?</summary><p>Không. Chúng tôi không khuyến khích làm quá giờ, nên check-in ngoài lịch không nhận XP hay năng lượng.</p></details>
+<details><summary>Nghỉ ốm dài ngày có mất thành tích không?</summary><p>Không. Ngày nghỉ không làm đứt chuỗi. Khi quay lại bạn còn có thể nhận 🌈 Comeback Star.</p></details>
+<details><summary>Tôi đăng nhập không được?</summary><p>Kiểm tra lại email và mật khẩu. Nếu vẫn lỗi, liên hệ HR để đặt lại mật khẩu.</p></details>
+</section>
+</main>
+</div>
+<footer>Happy Attendance · Show up. Grow up. Feel good. · <a href="/promo">Giới thiệu sản phẩm</a></footer>
+</div>
+</body>
+</html>

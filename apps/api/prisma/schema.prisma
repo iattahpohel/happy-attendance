@@ -1,0 +1,384 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  PERSONAL
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum EventType {
+  BOSS
+  GARDEN
+  EXPEDITION
+}
+
+enum EventStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED // đạt mục tiêu
+  ENDED // hết tháng mà chưa đạt — không dùng từ "thất bại"
+}
+
+enum ContributionSource {
+  WORKDAY_COMPLETED
+  APPRECIATION_SENT
+  QUEST_COMPLETED
+  ACHIEVEMENT_UNLOCKED
+}
+
+enum ItemType {
+  STICKER
+  DECORATION
+  OUTFIT
+  BACKGROUND
+}
+
+enum TitleCode {
+  STEADY_STAR
+  GROWTH_MINDSET
+  POSITIVE_ENERGY
+  RELIABLE_PARTNER
+  COMEBACK_STAR
+  PERFECT_MONTH
+}
+
+enum NotificationType {
+  ACHIEVEMENT
+  APPRECIATION
+  EVENT
+  TITLE
+  REMINDER
+  ITEM
+  SYSTEM
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  users     User[]
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  fullName         String
+  role             Role     @default(EMPLOYEE)
+  isActive         Boolean  @default(true)
+  teamId           String?
+  team             Team?    @relation(fields: [teamId], references: [id])
+  character        String   @default("sunny")
+  xp               Int      @default(0)
+  soundEnabled     Boolean  @default(true)
+  reminderEnabled  Boolean  @default(true)
+  /// Lịch mặc định: thứ trong tuần (0 = CN … 6 = T7) và giờ làm
+  workWeekdays     Int[]    @default([1, 2, 3, 4, 5])
+  defaultStartTime String   @default("08:30")
+  defaultEndTime   String   @default("17:30")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  schedules             WorkSchedule[]
+  attendance            AttendanceRecord[]
+  leaves                LeaveRecord[]         @relation("LeaveOwner")
+  reviewedLeaves        LeaveRecord[]         @relation("LeaveReviewer")
+  achievements          UserAchievement[]
+  summaries             MonthlySummary[]
+  titles                MonthlyTitle[]
+  sentAppreciations     AppreciationMessage[] @relation("Sender")
+  receivedAppreciations AppreciationMessage[] @relation("Receiver")
+  items                 UserItem[]
+  contributions         EventContribution[]
+  questProgress         QuestProgress[]
+  notifications         Notification[]
+  devices               DeviceToken[]
+}
+
+model WorkSchedule {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workDate  DateTime @db.Date
+  isWorkday Boolean  @default(true)
+  startTime String   @default("08:30")
+  endTime   String   @default("17:30")
+  note      String?
+
+  @@unique([userId, workDate])
+  @@index([workDate])
+}
+
+model Holiday {
+  id   String   @id @default(uuid())
+  date DateTime @unique @db.Date
+  name String
+}
+
+model LeaveRecord {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation("LeaveOwner", fields: [userId], references: [id], onDelete: Cascade)
+  startDate    DateTime    @db.Date
+  endDate      DateTime    @db.Date
+  type         LeaveType   @default(ANNUAL)
+  status       LeaveStatus @default(PENDING)
+  reason       String?
+  reviewedById String?
+  reviewedBy   User?       @relation("LeaveReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([userId, startDate])
+}
+
+model AttendanceRecord {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workDate       DateTime  @db.Date
+  checkInAt      DateTime
+  checkOutAt     DateTime?
+  isScheduledDay Boolean   @default(true)
+  isLate         Boolean   @default(false)
+  lateMinutes    Int       @default(0)
+  workedMinutes  Int?
+  autoCheckedOut Boolean   @default(false)
+  completed      Boolean   @default(false)
+  greeting       String?
+  note           String?
+
+  @@unique([userId, workDate])
+  @@index([workDate])
+}
+
+model Achievement {
+  id             String            @id @default(uuid())
+  code           String            @unique
+  name           String
+  description    String
+  icon           String
+  category       String            @default("journey")
+  threshold      Int?
+  xpReward       Int               @default(50)
+  rewardItemCode String?
+  sortOrder      Int               @default(0)
+  isActive       Boolean           @default(true)
+  users          UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([unlockedAt])
+}
+
+model MonthlySummary {
+  id                    String   @id @default(uuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year                  Int
+  month                 Int
+  scheduledDays         Int
+  completedDays         Int
+  attendanceDays        Int
+  onTimeDays            Int
+  lateDays              Int
+  leaveDays             Int
+  workedMinutes         Int
+  achievementsUnlocked  Int
+  appreciationsReceived Int
+  appreciationsSent     Int
+  eventPoints           Int
+  longestStreak         Int
+  completionRate        Float
+  message               String
+  finalizedAt           DateTime @default(now())
+
+  @@unique([userId, year, month])
+}
+
+model MonthlyTitle {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year      Int
+  month     Int
+  code      TitleCode
+  reason    String
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, year, month, code])
+  @@index([year, month])
+}
+
+model AppreciationMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  message    String
+  emoji      String   @default("💚")
+  isPublic   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([receiverId, createdAt])
+  @@index([createdAt])
+}
+
+model Item {
+  id          String     @id @default(uuid())
+  code        String     @unique
+  name        String
+  type        ItemType
+  icon        String
+  description String
+  rarity      String     @default("common")
+  owners      UserItem[]
+}
+
+model UserItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  source     String
+  equipped   Boolean  @default(false)
+  acquiredAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+}
+
+model CommunityEvent {
+  id                String              @id @default(uuid())
+  year              Int
+  month             Int
+  type              EventType
+  themeCode         String
+  title             String
+  description       String
+  villainName       String?
+  icon              String
+  targetPoints      Int
+  currentPoints     Int                 @default(0)
+  milestonesReached Int[]               @default([])
+  /// Ảnh chụp các tham số đã dùng để tính mục tiêu (minh bạch cho admin)
+  formula           Json
+  status            EventStatus         @default(ACTIVE)
+  rewardItemCode    String?
+  zoneCode          String?
+  startsAt          DateTime
+  endsAt            DateTime
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  contributions     EventContribution[]
+  quests            EventQuest[]
+
+  @@unique([year, month])
+}
+
+model EventContribution {
+  id        String             @id @default(uuid())
+  eventId   String
+  event     CommunityEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    ContributionSource
+  points    Int
+  /// Khóa idempotent, ví dụ "day:2026-11-20" — tránh cộng điểm 2 lần
+  refKey    String
+  createdAt DateTime           @default(now())
+
+  @@unique([eventId, userId, refKey])
+  @@index([eventId, createdAt])
+}
+
+model EventQuest {
+  id          String          @id @default(uuid())
+  eventId     String
+  event       CommunityEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  code        String
+  title       String
+  description String
+  icon        String
+  actionKey   String
+  targetCount Int
+  points      Int
+  progress    QuestProgress[]
+
+  @@unique([eventId, code])
+}
+
+model QuestProgress {
+  id          String     @id @default(uuid())
+  questId     String
+  quest       EventQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  count       Int        @default(0)
+  completedAt DateTime?
+
+  @@unique([questId, userId])
+}
+
+model WorldZone {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  name              String
+  description       String
+  icon              String
+  sortOrder         Int
+  unlockedAt        DateTime?
+  unlockedByEventId String?
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String   @default("web")
+  createdAt DateTime @default(now())
+}

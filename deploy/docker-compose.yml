@@ -1,0 +1,53 @@
+# Deploy lên server: cp .env.example .env && sửa giá trị && docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-happy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?đặt POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-happy_attendance}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-happy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY:?đặt GITHUB_REPOSITORY, vd owner/check-in-app}-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-happy}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-happy_attendance}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?đặt JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 4000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      APP_TZ: ${APP_TZ:-Asia/Ho_Chi_Minh}
+      LATE_GRACE_MINUTES: ${LATE_GRACE_MINUTES:-10}
+      EVENT_DIFFICULTY: ${EVENT_DIFFICULTY:-0.85}
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+
+  web:
+    image: ghcr.io/${GITHUB_REPOSITORY}-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  pgdata:
