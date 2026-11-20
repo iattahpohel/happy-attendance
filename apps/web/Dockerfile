@@ -8,6 +8,8 @@ COPY apps/web apps/web
 WORKDIR /app/apps/web
 # NEXT_PUBLIC_* được nhúng lúc build. Mặc định "/api" (cùng domain qua reverse proxy)
 ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_BASE_PATH=
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm build
 ENV NODE_ENV=production

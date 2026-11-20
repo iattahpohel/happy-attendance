@@ -41,7 +41,7 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   });
   if (res.status === 401 && !path.startsWith('/auth/login')) {
     setToken(null);
-    if (typeof window !== 'undefined' && !location.pathname.startsWith('/login')) location.href = '/login';
+    if (typeof window !== 'undefined' && !location.pathname.endsWith('/login')) location.href = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/login`;
   }
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;

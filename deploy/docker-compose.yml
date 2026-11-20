@@ -28,7 +28,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?đặt JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       PORT: 4000
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://staging-internal.woka.io}
       APP_TZ: ${APP_TZ:-Asia/Ho_Chi_Minh}
       LATE_GRACE_MINUTES: ${LATE_GRACE_MINUTES:-10}
       EVENT_DIFFICULTY: ${EVENT_DIFFICULTY:-0.85}
