@@ -61,6 +61,30 @@ export interface AttendanceRecord {
   autoCheckedOut: boolean;
   completed: boolean;
   greeting: string | null;
+  checkInLat: number | null;
+  checkInLng: number | null;
+  checkInDistance: number | null;
+  checkInLocStatus: LocationStatus;
+  checkOutLat: number | null;
+  checkOutLng: number | null;
+  checkOutDistance: number | null;
+  checkOutLocStatus: LocationStatus | null;
+}
+
+export type LocationStatus = 'OK' | 'OUT_OF_RANGE' | 'NO_LOCATION';
+
+export interface OfficeConfig {
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  maxDistanceMeters: number;
+  configured: boolean;
+}
+
+export interface Coords {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
 }
 
 export interface DayPlan {

@@ -25,6 +25,7 @@ nav.toc a:hover{background:var(--sun-soft);color:var(--ink)}
 section{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:24px;margin-bottom:18px;box-shadow:0 6px 24px -10px rgb(120 90 40/.18);scroll-margin-top:72px}
 h2{margin:0 0 12px;font-size:22px;font-weight:900}
 h3{margin:18px 0 6px;font-size:16px;font-weight:800}
+h4{margin:14px 0 6px;font-size:14.5px;font-weight:800;color:var(--muted)}
 ol,ul{padding-left:22px;margin:8px 0}li{margin:4px 0}
 .steps{list-style:none;padding:0;counter-reset:s}
 .steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;margin:10px 0}
@@ -195,7 +196,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 0 48px}
 <h2>8. Dành cho Admin (HR) <span class="tag">Quản trị</span></h2>
 <figure class="shot wide"><img src="shots/admin.png" alt="Quản trị: tổng quan ngày với trạng thái từng nhân viên"><figcaption>Quản trị: tổng quan ngày với trạng thái từng nhân viên</figcaption></figure><table>
 <tr><th>Mục</th><th>Việc có thể làm</th></tr>
-<tr><td>Tổng quan ngày</td><td>Xem ai đã check-in, đi muộn, nghỉ phép trong ngày</td></tr>
+<tr><td>Tổng quan ngày</td><td>Xem ai đã check-in, đi muộn, nghỉ phép trong ngày; cột <b>Vị trí</b> cho biết vị trí chấm công có hợp lệ không</td></tr>
+<tr><td>Vị trí công ty</td><td>Đặt toạ độ công ty và khoảng cách tối đa cho phép chấm công</td></tr>
 <tr><td>Nhân viên / team</td><td>Thêm, sửa, ngưng nhân viên; gán team</td></tr>
 <tr><td>Lịch làm việc</td><td>Đặt lịch cho từng người (ví dụ T2/T4/T6 cho bán thời gian)</td></tr>
 <tr><td>Nghỉ phép</td><td>Duyệt hoặc từ chối yêu cầu</td></tr>
@@ -205,6 +207,38 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 0 48px}
 <tr><td>Quy tắc thành tựu</td><td>Xem và điều chỉnh điều kiện thành tựu</td></tr>
 </table>
 <div class="note info">Mục tiêu sự kiện được tính lại tự động khi thêm hoặc ngưng nhân viên, đổi lịch, thêm ngày lễ hoặc duyệt nghỉ phép.</div>
+
+<h3 id="vi-tri">Vị trí chấm công</h3>
+<p>Mỗi lần check-in và check-out, ứng dụng lưu lại vị trí của nhân viên để HR đối chiếu khi cần. Vị trí <b>không chặn</b> chấm công: nhân viên luôn chấm công được và vẫn nhận đầy đủ XP, chỉ có lần chấm công đó được đánh dấu để HR xử lý.</p>
+
+<h4>Cài đặt vị trí công ty</h4>
+<figure class="shot wide"><img src="shots/admin-office.png" alt="Quản trị, tab Vị trí công ty: toạ độ và khoảng cách tối đa"><figcaption>Tab "Vị trí công ty": toạ độ và khoảng cách tối đa cho phép</figcaption></figure>
+<ol>
+<li>Vào <b>Quản trị → Vị trí công ty</b>.</li>
+<li>Nhập <b>Tên địa điểm</b>, <b>Vĩ độ</b> và <b>Kinh độ</b>. Cách nhanh nhất: đứng tại công ty rồi bấm <b>📍 Dùng vị trí hiện tại của tôi</b> (trình duyệt sẽ hỏi quyền truy cập vị trí). Bấm <b>Xem trên bản đồ</b> để kiểm tra lại.</li>
+<li>Nhập <b>Khoảng cách tối đa cho phép (mét)</b>, tối thiểu 10 m, mặc định 200 m. Nên đặt rộng hơn một chút so với diện tích toà nhà vì định vị GPS trong nhà có thể lệch vài chục mét.</li>
+<li>Bấm <b>Lưu</b>. Thay đổi áp dụng cho các lần chấm công tiếp theo.</li>
+</ol>
+<div class="note info">Để trống vĩ độ/kinh độ = công ty chưa cấu hình vị trí. Khi đó hệ thống vẫn lưu vị trí nhân viên gửi lên nhưng không kiểm tra khoảng cách.</div>
+
+<h4>Nhân viên sẽ thấy gì khi chấm công</h4>
+<table>
+<tr><th>Tình huống</th><th>Trên ứng dụng của nhân viên</th><th>Đánh dấu cho HR</th></tr>
+<tr><td>Trong khoảng cách cho phép</td><td>Chấm công bình thường, không có thông báo</td><td><span class="tag">Hợp lệ</span></td></tr>
+<tr><td>Ngoài khoảng cách cho phép</td><td>Hiện cảnh báo nêu rõ đang cách công ty bao nhiêu mét. Nhân viên chọn <b>Vẫn chấm công</b> hoặc <b>Huỷ</b></td><td>⚠️ Ngoài phạm vi (kèm số mét)</td></tr>
+<tr><td>Không cho phép truy cập vị trí, thiết bị không định vị được hoặc lấy vị trí quá lâu</td><td>Hiện cảnh báo "không có vị trí". Nhân viên chọn <b>Vẫn chấm công</b> hoặc <b>Huỷ</b></td><td>⚠️ Không có vị trí</td></tr>
+</table>
+<p>Nếu nhân viên chọn <b>Huỷ</b>, chưa có bản ghi chấm công nào được tạo và họ có thể thử lại sau khi bật vị trí hoặc di chuyển tới công ty.</p>
+
+<h4>HR xem và xử lý</h4>
+<ol>
+<li>Vào <b>Quản trị → Hôm nay</b> và chọn ngày cần xem.</li>
+<li>Cột <b>Vị trí</b> hiển thị nhãn riêng cho giờ <b>Vào</b> và giờ <b>Ra</b>: <i>Hợp lệ</i>, <i>⚠️ Ngoài phạm vi … m</i> hoặc <i>⚠️ Không có vị trí</i>.</li>
+<li>Với bản ghi có toạ độ, bấm <b>Bản đồ</b> để mở Google Maps tại đúng nơi nhân viên chấm công.</li>
+<li>Liên hệ nhân viên để xác minh. Nếu hợp lý (đi công tác, làm việc tại khách hàng, điện thoại lỗi GPS…), giữ nguyên bản ghi; nếu cần ghi chú hoặc sửa giờ, bấm <b>Điều chỉnh</b>.</li>
+</ol>
+<div class="note warn">Bản ghi chấm công trước khi có tính năng này sẽ hiện <b>Không có vị trí</b> vì lúc đó hệ thống chưa lưu vị trí. Bạn có thể bỏ qua các bản ghi cũ này.</div>
+<div class="note tip">Trình duyệt chỉ cho phép định vị khi trang chạy trên HTTPS. Nếu nhiều nhân viên báo "không có vị trí", hãy kiểm tra địa chỉ truy cập có dùng HTTPS và nhân viên đã cho phép vị trí cho trang này chưa.</div>
 </section>
 
 <section id="faq">

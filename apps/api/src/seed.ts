@@ -19,7 +19,9 @@ import { ScheduleService } from './schedule/schedule.service';
 import { LeavesService } from './schedule/leaves.service';
 import { themeForMonth } from './community-events/event-themes';
 import { dateOnly, eachDayOfMonth, localParts, pad, prevMonth, timeToMinutes, ymd, zonedToUtc } from './common/time';
-import { ACHIEVEMENTS, EMOJIS, HOLIDAYS_2026, ITEMS, PERSONAS, TEAMS, THANK_YOU_MESSAGES, ZONES } from './seed-data';
+import { ACHIEVEMENTS, EMOJIS, HOLIDAYS_2026, ITEMS, OFFICE, PERSONAS, TEAMS, THANK_YOU_MESSAGES, ZONES } from './seed-data';
+import { distanceMeters } from './common/geo';
+import { LocationStatus } from '@prisma/client';
 
 // PRNG cố định để dữ liệu demo lặp lại được
 let seed = 20261120;
@@ -29,6 +31,33 @@ function rand() {
   let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+// PRNG riêng cho vị trí: không làm lệch chuỗi random của dữ liệu chấm công/cảm ơn đã có
+let locSeed = 1121;
+function locRand() {
+  locSeed = (Math.imul(locSeed, 1664525) + 1013904223) | 0;
+  return (locSeed >>> 0) / 4294967296;
+}
+
+/** Vị trí chấm công mô phỏng: đa số quanh công ty, thỉnh thoảng ngoài phạm vi hoặc không có vị trí */
+function fakeLocation(anomalyRate: number) {
+  const r = locRand();
+  if (r < anomalyRate * 0.4) {
+    return { lat: null, lng: null, accuracy: null, distance: null, status: LocationStatus.NO_LOCATION };
+  }
+  const meters = r < anomalyRate ? 300 + locRand() * 2700 : 5 + locRand() * 120;
+  const angle = locRand() * 2 * Math.PI;
+  const lat = OFFICE.latitude + (meters * Math.cos(angle)) / 111320;
+  const lng = OFFICE.longitude + (meters * Math.sin(angle)) / (111320 * Math.cos((OFFICE.latitude * Math.PI) / 180));
+  const distance = distanceMeters(lat, lng, OFFICE.latitude, OFFICE.longitude);
+  return {
+    lat,
+    lng,
+    accuracy: Math.round(5 + locRand() * 25),
+    distance,
+    status: distance > OFFICE.maxDistanceMeters ? LocationStatus.OUT_OF_RANGE : LocationStatus.OK,
+  };
 }
 const randInt = (a: number, b: number) => a + Math.floor(rand() * (b - a + 1));
 const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
@@ -48,7 +77,8 @@ async function main() {
   await prisma.$executeRawUnsafe(`TRUNCATE TABLE
     "Notification","DeviceToken","QuestProgress","EventQuest","EventContribution","CommunityEvent","WorldZone",
     "UserItem","Item","UserAchievement","Achievement","MonthlyTitle","MonthlySummary","AppreciationMessage",
-    "AttendanceRecord","LeaveRecord","WorkSchedule","Holiday","User","Team" CASCADE`);
+    "AttendanceRecord","LeaveRecord","WorkSchedule","Holiday","User","Team","OfficeSetting" CASCADE`);
+  await prisma.officeSetting.create({ data: { id: 'default', ...OFFICE } });
 
   console.log('Danh mục…');
   await prisma.achievement.createMany({ data: ACHIEVEMENTS });
@@ -135,8 +165,14 @@ async function main() {
         const inMin = late ? startMin + randInt(11, 40) : startMin - randInt(0, 25);
         const checkInAt = zonedToUtc(date, minutesToHHMM(inMin));
         if (isToday && checkInAt.getTime() > Date.now()) continue;
+        const inLoc = fakeLocation(0.08);
         const rec = await prisma.attendanceRecord.create({
           data: {
+            checkInLat: inLoc.lat,
+            checkInLng: inLoc.lng,
+            checkInAccuracy: inLoc.accuracy,
+            checkInDistance: inLoc.distance,
+            checkInLocStatus: inLoc.status,
             userId: id,
             workDate: dateOnly(date),
             checkInAt,
@@ -148,9 +184,15 @@ async function main() {
         if (isToday) continue; // hôm nay mọi người vẫn đang làm việc
         const outMin = timeToMinutes(plan.endTime) + randInt(0, 20);
         const checkOutAt = zonedToUtc(date, minutesToHHMM(outMin));
+        const outLoc = fakeLocation(0.04);
         await prisma.attendanceRecord.update({
           where: { id: rec.id },
           data: {
+            checkOutLat: outLoc.lat,
+            checkOutLng: outLoc.lng,
+            checkOutAccuracy: outLoc.accuracy,
+            checkOutDistance: outLoc.distance,
+            checkOutLocStatus: outLoc.status,
             checkOutAt,
             workedMinutes: Math.round((checkOutAt.getTime() - checkInAt.getTime()) / 60000),
             completed: true,

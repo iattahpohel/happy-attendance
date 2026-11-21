@@ -62,6 +62,12 @@ enum TitleCode {
   PERFECT_MONTH
 }
 
+enum LocationStatus {
+  OK // trong phạm vi cho phép (hoặc công ty chưa cấu hình vị trí)
+  OUT_OF_RANGE // ngoài khoảng cách cho phép
+  NO_LOCATION // không có vị trí (từ chối quyền / không lấy được)
+}
+
 enum NotificationType {
   ACHIEVEMENT
   APPRECIATION
@@ -167,6 +173,18 @@ model AttendanceRecord {
   completed      Boolean   @default(false)
   greeting       String?
   note           String?
+
+  /// Vị trí lúc check-in / check-out (HR tự xử lý khi OUT_OF_RANGE hoặc NO_LOCATION)
+  checkInLat         Float?
+  checkInLng         Float?
+  checkInAccuracy    Float?
+  checkInDistance    Int?
+  checkInLocStatus   LocationStatus @default(NO_LOCATION)
+  checkOutLat        Float?
+  checkOutLng        Float?
+  checkOutAccuracy   Float?
+  checkOutDistance   Int?
+  checkOutLocStatus  LocationStatus?
 
   @@unique([userId, workDate])
   @@index([workDate])
@@ -381,4 +399,14 @@ model DeviceToken {
   token     String   @unique
   platform  String   @default("web")
   createdAt DateTime @default(now())
+}
+
+/// Cấu hình vị trí công ty (một dòng duy nhất, id = "default")
+model OfficeSetting {
+  id                String   @id @default("default")
+  name              String   @default("Công ty")
+  latitude          Float?
+  longitude         Float?
+  maxDistanceMeters Int      @default(200)
+  updatedAt         DateTime @updatedAt
 }

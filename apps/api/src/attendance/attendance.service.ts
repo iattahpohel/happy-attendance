@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { AttendanceRecord } from '@prisma/client';
+import { AttendanceRecord, LocationStatus } from '@prisma/client';
+import { distanceMeters } from '../common/geo';
+import { PunchDto } from './attendance.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ScheduleService } from '../schedule/schedule.service';
 import { GamificationService, UnlockedAchievement } from '../gamification/gamification.service';
@@ -27,7 +29,34 @@ export class AttendanceService {
     return Number.isFinite(g) && g >= 0 ? g : 10;
   }
 
-  async checkIn(userId: string) {
+  async getOffice() {
+    const o = await this.prisma.officeSetting.findUnique({ where: { id: 'default' } });
+    return {
+      name: o?.name ?? 'Công ty',
+      latitude: o?.latitude ?? null,
+      longitude: o?.longitude ?? null,
+      maxDistanceMeters: o?.maxDistanceMeters ?? 200,
+      configured: o?.latitude != null && o?.longitude != null,
+    };
+  }
+
+  async updateOffice(data: { name?: string; latitude?: number | null; longitude?: number | null; maxDistanceMeters?: number }) {
+    await this.prisma.officeSetting.upsert({ where: { id: 'default' }, update: data, create: { id: 'default', ...data } });
+    return this.getOffice();
+  }
+
+  /** Đánh giá vị trí chấm công. Không bao giờ chặn — chỉ gắn nhãn để HR xử lý. */
+  private async locate(dto: PunchDto) {
+    if (dto.latitude == null || dto.longitude == null) {
+      return { lat: null, lng: null, accuracy: null, distance: null, status: LocationStatus.NO_LOCATION };
+    }
+    const office = await this.getOffice();
+    const distance = office.configured ? distanceMeters(dto.latitude, dto.longitude, office.latitude!, office.longitude!) : null;
+    const status = distance != null && distance > office.maxDistanceMeters ? LocationStatus.OUT_OF_RANGE : LocationStatus.OK;
+    return { lat: dto.latitude, lng: dto.longitude, accuracy: dto.accuracy ?? null, distance, status };
+  }
+
+  async checkIn(userId: string, dto: PunchDto = {}) {
     const now = new Date();
     const lp = localParts(now);
     const plan = await this.schedule.dayPlan(userId, lp.dateStr);
@@ -35,6 +64,7 @@ export class AttendanceService {
     const startMin = timeToMinutes(plan.startTime);
     const isLate = isScheduledDay && lp.minutesOfDay > startMin + this.graceMinutes;
     const greeting = checkInGreeting({ minutesOfDay: lp.minutesOfDay, isLate, isScheduledDay });
+    const loc = await this.locate(dto);
 
     let record: AttendanceRecord;
     try {
@@ -47,6 +77,11 @@ export class AttendanceService {
           isLate,
           lateMinutes: isLate ? lp.minutesOfDay - startMin : 0,
           greeting,
+          checkInLat: loc.lat,
+          checkInLng: loc.lng,
+          checkInAccuracy: loc.accuracy,
+          checkInDistance: loc.distance,
+          checkInLocStatus: loc.status,
         },
       });
     } catch (e) {
@@ -68,7 +103,7 @@ export class AttendanceService {
     };
   }
 
-  async checkOut(userId: string) {
+  async checkOut(userId: string, dto: PunchDto = {}) {
     const now = new Date();
     const lp = localParts(now);
     const record = await this.prisma.attendanceRecord.findUnique({
@@ -78,9 +113,19 @@ export class AttendanceService {
     if (record.checkOutAt) throw new BadRequestException('Bạn đã check-out rồi. Nghỉ ngơi thôi! 🌙');
 
     const workedMinutes = Math.max(0, Math.round((now.getTime() - record.checkInAt.getTime()) / 60000));
+    const loc = await this.locate(dto);
     const updated = await this.prisma.attendanceRecord.update({
       where: { id: record.id },
-      data: { checkOutAt: now, workedMinutes, completed: record.isScheduledDay },
+      data: {
+        checkOutAt: now,
+        workedMinutes,
+        completed: record.isScheduledDay,
+        checkOutLat: loc.lat,
+        checkOutLng: loc.lng,
+        checkOutAccuracy: loc.accuracy,
+        checkOutDistance: loc.distance,
+        checkOutLocStatus: loc.status,
+      },
     });
     const reward = updated.completed
       ? await this.completeDay(userId, lp.dateStr, now)

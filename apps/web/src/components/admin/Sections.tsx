@@ -7,7 +7,8 @@ import { Avatar } from '@/components/Character';
 import { Modal } from '@/components/Modal';
 import { api } from '@/lib/api';
 import { LEAVE_LABEL, LEAVE_STATUS_LABEL, timeOf, WEEKDAY_SHORT } from '@/lib/format';
-import type { DayPlan, EventSummary, Leave, LeaveStatus, Me, Role } from '@/lib/types';
+import { getCurrentLocation } from '@/lib/geo';
+import type { DayPlan, EventSummary, Leave, LeaveStatus, LocationStatus, Me, OfficeConfig, Role } from '@/lib/types';
 import { Table, Td, Th, useAdminMutation } from './shared';
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -19,7 +20,21 @@ interface OverviewRow {
   kind: string;
   scheduled: boolean;
   startTime: string;
-  record: { id: string; checkInAt: string; checkOutAt: string | null; isLate: boolean; completed: boolean } | null;
+  record: {
+    id: string;
+    checkInAt: string;
+    checkOutAt: string | null;
+    isLate: boolean;
+    completed: boolean;
+    checkInLat: number | null;
+    checkInLng: number | null;
+    checkInDistance: number | null;
+    checkInLocStatus: LocationStatus;
+    checkOutLat: number | null;
+    checkOutLng: number | null;
+    checkOutDistance: number | null;
+    checkOutLocStatus: LocationStatus | null;
+  } | null;
 }
 
 export function OverviewSection() {
@@ -56,6 +71,7 @@ export function OverviewSection() {
             <Th>Lịch</Th>
             <Th>Vào</Th>
             <Th>Ra</Th>
+            <Th>Vị trí</Th>
             <Th>Trạng thái</Th>
             <Th />
           </tr>
@@ -68,6 +84,7 @@ export function OverviewSection() {
               <Td>{r.scheduled ? r.startTime : { OFF: 'Nghỉ', HOLIDAY: 'Lễ', LEAVE: 'Phép', WORK: '' }[r.kind]}</Td>
               <Td>{r.record ? timeOf(r.record.checkInAt) : '—'}</Td>
               <Td>{r.record?.checkOutAt ? timeOf(r.record.checkOutAt) : '—'}</Td>
+              <Td>{r.record && <LocationCell r={r.record} />}</Td>
               <Td>
                 {r.record?.completed ? (
                   <span className="chip bg-leaf-soft">Hoàn thành</span>
@@ -91,6 +108,113 @@ export function OverviewSection() {
       </Table>
       <CorrectionModal row={edit} onClose={() => setEdit(null)} />
     </div>
+  );
+}
+
+const mapLink = (lat: number | null, lng: number | null) => (lat != null && lng != null ? `https://www.google.com/maps?q=${lat},${lng}` : null);
+
+function LocPart({ label, status, distance, lat, lng }: { label: string; status: LocationStatus; distance: number | null; lat: number | null; lng: number | null }) {
+  const cls = status === 'OK' ? 'bg-leaf-soft' : status === 'OUT_OF_RANGE' ? 'bg-sun-soft' : 'bg-cream';
+  const text = status === 'OK' ? 'Hợp lệ' : status === 'OUT_OF_RANGE' ? `Ngoài phạm vi ${distance?.toLocaleString('vi-VN')} m` : 'Không có vị trí';
+  const link = mapLink(lat, lng);
+  return (
+    <span className="flex items-center gap-1">
+      <span className="text-xs text-muted">{label}</span>
+      <span className={`chip ${cls}`}>{status !== 'OK' && '⚠️ '}{text}</span>
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer" className="text-xs font-bold underline">
+          Bản đồ
+        </a>
+      )}
+    </span>
+  );
+}
+
+function LocationCell({ r }: { r: NonNullable<OverviewRow['record']> }) {
+  return (
+    <div className="space-y-1">
+      <LocPart label="Vào" status={r.checkInLocStatus} distance={r.checkInDistance} lat={r.checkInLat} lng={r.checkInLng} />
+      {r.checkOutLocStatus && <LocPart label="Ra" status={r.checkOutLocStatus} distance={r.checkOutDistance} lat={r.checkOutLat} lng={r.checkOutLng} />}
+    </div>
+  );
+}
+
+/* ---------- Vị trí công ty ---------- */
+export function OfficeSection() {
+  const { data } = useQuery({ queryKey: ['admin-office'], queryFn: () => api<OfficeConfig>('/admin/office') });
+  const [form, setForm] = useState({ name: '', latitude: '', longitude: '', maxDistanceMeters: '200' });
+  const [loaded, setLoaded] = useState(false);
+  const [locating, setLocating] = useState(false);
+  if (data && !loaded) {
+    setLoaded(true);
+    setForm({
+      name: data.name,
+      latitude: data.latitude?.toString() ?? '',
+      longitude: data.longitude?.toString() ?? '',
+      maxDistanceMeters: String(data.maxDistanceMeters),
+    });
+  }
+  const save = useAdminMutation(
+    () => ({
+      path: '/admin/office',
+      method: 'PUT',
+      json: {
+        name: form.name.trim() || undefined,
+        latitude: form.latitude === '' ? null : Number(form.latitude),
+        longitude: form.longitude === '' ? null : Number(form.longitude),
+        maxDistanceMeters: Number(form.maxDistanceMeters),
+      },
+    }),
+    ['admin-office', 'office'],
+    'Đã lưu vị trí công ty',
+  );
+  const useHere = async () => {
+    setLocating(true);
+    const r = await getCurrentLocation();
+    setLocating(false);
+    if (r.ok) setForm((f) => ({ ...f, latitude: r.coords.latitude.toFixed(6), longitude: r.coords.longitude.toFixed(6) }));
+    else alert('Không lấy được vị trí hiện tại. Hãy cho phép truy cập vị trí hoặc nhập toạ độ thủ công.');
+  };
+  const link = mapLink(Number(form.latitude) || null, Number(form.longitude) || null);
+  return (
+    <section className="card max-w-xl space-y-3 p-5">
+      <p className="font-black">Vị trí công ty & khoảng cách chấm công</p>
+      <p className="text-sm text-muted">
+        Nhân viên vẫn chấm công được khi không có vị trí hoặc ở ngoài khoảng cách cho phép; lần chấm công đó sẽ được đánh dấu ở bảng "Hôm nay" để HR xử lý. Để trống toạ độ
+        = không kiểm tra khoảng cách.
+      </p>
+      <label className="block text-sm font-bold">
+        Tên địa điểm
+        <input className="input mt-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      </label>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block text-sm font-bold">
+          Vĩ độ (latitude)
+          <input className="input mt-1" inputMode="decimal" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+        </label>
+        <label className="block text-sm font-bold">
+          Kinh độ (longitude)
+          <input className="input mt-1" inputMode="decimal" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+        </label>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button className="btn bg-paper text-muted" onClick={useHere} disabled={locating}>
+          📍 Dùng vị trí hiện tại của tôi
+        </button>
+        {link && (
+          <a href={link} target="_blank" rel="noreferrer" className="text-sm font-bold underline">
+            Xem trên bản đồ
+          </a>
+        )}
+      </div>
+      <label className="block text-sm font-bold">
+        Khoảng cách tối đa cho phép (mét)
+        <input type="number" min={10} className="input mt-1 max-w-40" value={form.maxDistanceMeters} onChange={(e) => setForm({ ...form, maxDistanceMeters: e.target.value })} />
+      </label>
+      <button className="btn-primary" onClick={() => save.mutate(undefined)} disabled={save.isPending}>
+        Lưu
+      </button>
+    </section>
   );
 }
 

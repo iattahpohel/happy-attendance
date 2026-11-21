@@ -9,6 +9,8 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsLatitude,
+  IsLongitude,
   IsNumber,
   IsOptional,
   IsString,
@@ -96,4 +98,11 @@ export class UpdateAchievementDto {
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsInt() @Min(1) threshold?: number;
   @IsOptional() @IsInt() @Min(0) xpReward?: number;
+}
+
+export class UpdateOfficeDto {
+  @IsOptional() @IsString() @MinLength(1) name?: string;
+  @IsOptional() @IsLatitude() latitude?: number | null;
+  @IsOptional() @IsLongitude() longitude?: number | null;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(10) @Max(100000) maxDistanceMeters?: number;
 }

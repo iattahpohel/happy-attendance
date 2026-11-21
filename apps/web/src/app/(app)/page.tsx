@@ -12,10 +12,12 @@ import { Garden } from '@/components/Garden';
 import { Bar, ProgressRing } from '@/components/ProgressRing';
 import { SkyScene } from '@/components/SkyScene';
 import { useToast } from '@/components/Toast';
+import { Modal } from '@/components/Modal';
 import { api } from '@/lib/api';
+import { getCurrentLocation, LOCATION_REASON, outOfRangeBy } from '@/lib/geo';
 import { firstName, timeOf } from '@/lib/format';
 import { sounds } from '@/lib/sound';
-import type { CheckInResult, CheckOutResult, HomeData } from '@/lib/types';
+import type { CheckInResult, CheckOutResult, Coords, HomeData, OfficeConfig } from '@/lib/types';
 
 function greetingByHour(min: number) {
   if (min < 11 * 60) return 'Chào buổi sáng';
@@ -35,7 +37,7 @@ export default function HomePage() {
   };
 
   const checkIn = useMutation({
-    mutationFn: () => api<CheckInResult>('/attendance/check-in', { method: 'POST' }),
+    mutationFn: (c: Coords | null) => api<CheckInResult>('/attendance/check-in', { method: 'POST', json: c ?? {} }),
     onSuccess: (r) => {
       if (data?.me.soundEnabled) (r.newAchievements.length ? sounds.achievement : sounds.checkIn)();
       setCelebration({
@@ -52,7 +54,7 @@ export default function HomePage() {
   });
 
   const checkOut = useMutation({
-    mutationFn: () => api<CheckOutResult>('/attendance/check-out', { method: 'POST' }),
+    mutationFn: (c: Coords | null) => api<CheckOutResult>('/attendance/check-out', { method: 'POST', json: c ?? {} }),
     onSuccess: (r) => {
       if (data?.me.soundEnabled) sounds.checkOut();
       setCelebration({
@@ -69,6 +71,33 @@ export default function HomePage() {
     },
     onError: (e: Error) => toast(e.message, 'error'),
   });
+
+  const { data: office } = useQuery({ queryKey: ['office'], queryFn: () => api<OfficeConfig>('/attendance/office'), staleTime: 5 * 60000 });
+  const [locating, setLocating] = useState(false);
+  const [warn, setWarn] = useState<{ action: 'in' | 'out'; coords: Coords | null; message: string } | null>(null);
+
+  const submit = (action: 'in' | 'out', coords: Coords | null) => (action === 'in' ? checkIn : checkOut).mutate(coords);
+
+  /** Lấy vị trí rồi chấm công; nếu thiếu vị trí hoặc ngoài phạm vi thì hỏi xác nhận (vẫn được chấm công) */
+  const punch = async (action: 'in' | 'out') => {
+    setLocating(true);
+    const res = await getCurrentLocation();
+    setLocating(false);
+    if (!res.ok) {
+      setWarn({ action, coords: null, message: `${LOCATION_REASON[res.reason]} Bạn vẫn có thể chấm công, nhưng lần chấm công này sẽ được đánh dấu "không có vị trí" để HR kiểm tra.` });
+      return;
+    }
+    const far = outOfRangeBy(res.coords, office);
+    if (far != null) {
+      setWarn({
+        action,
+        coords: res.coords,
+        message: `Bạn đang cách ${office!.name} khoảng ${far.toLocaleString('vi-VN')} m, vượt mức cho phép (${office!.maxDistanceMeters} m). Bạn vẫn có thể chấm công, nhưng lần này sẽ được đánh dấu "ngoài khoảng cách cho phép" để HR kiểm tra.`,
+      });
+      return;
+    }
+    submit(action, res.coords);
+  };
 
   const accessory = useMemo(() => data?.equipped.find((i) => i.type === 'OUTFIT')?.icon ?? null, [data]);
   const background = useMemo(() => data?.equipped.find((i) => i.type === 'BACKGROUND')?.code ?? null, [data]);
@@ -127,13 +156,13 @@ export default function HomePage() {
 
           <div className="p-3 pt-4">
             {phase === 'BEFORE_CHECK_IN' && (
-              <BigButton onClick={() => checkIn.mutate()} busy={checkIn.isPending} tone="sun" icon={<Sun size={26} />}>
+              <BigButton onClick={() => punch('in')} busy={checkIn.isPending || locating} tone="sun" icon={<Sun size={26} />}>
                 {dayOff ? 'Check-in (ngày nghỉ)' : 'Check-in'}
               </BigButton>
             )}
             {phase === 'WORKING' && (
               <>
-                <BigButton onClick={() => checkOut.mutate()} busy={checkOut.isPending} tone="night" icon={<Moon size={24} />}>
+                <BigButton onClick={() => punch('out')} busy={checkOut.isPending || locating} tone="night" icon={<Moon size={24} />}>
                   Check-out
                 </BigButton>
                 <p className="mt-2 text-center text-sm font-semibold text-muted">
@@ -216,6 +245,24 @@ export default function HomePage() {
         </Link>
       </div>
 
+      <Modal open={!!warn} onClose={() => setWarn(null)} title="⚠️ Lưu ý về vị trí">
+        <p className="text-sm font-semibold text-muted">{warn?.message}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button className="btn bg-paper text-muted" onClick={() => setWarn(null)}>
+            Huỷ
+          </button>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              const w = warn!;
+              setWarn(null);
+              submit(w.action, w.coords);
+            }}
+          >
+            Vẫn chấm công
+          </button>
+        </div>
+      </Modal>
       <Celebration data={celebration} character={me.character} accessory={accessory} onClose={() => setCelebration(null)} />
     </div>
   );

@@ -10,6 +10,7 @@ import { CommunityEventsService } from '../community-events/community-events.ser
 import { EVENT_THEMES } from '../community-events/event-themes';
 import { MonthlySummaryService } from '../monthly-summary/monthly-summary.service';
 import { AdminService } from './admin.service';
+import { AttendanceService } from '../attendance/attendance.service';
 import {
   CorrectAttendanceDto,
   CreateEventDto,
@@ -21,6 +22,7 @@ import {
   RecalculateEventDto,
   ReviewLeaveDto,
   UpdateAchievementDto,
+  UpdateOfficeDto,
   UpdateUserDto,
   UpsertScheduleDayDto,
 } from './admin.dto';
@@ -35,6 +37,7 @@ export class AdminController {
     private readonly leaves: LeavesService,
     private readonly events: CommunityEventsService,
     private readonly summary: MonthlySummaryService,
+    private readonly attendance: AttendanceService,
   ) {}
 
   @Get('overview')
@@ -118,6 +121,17 @@ export class AdminController {
     const res = await this.leaves.review(user.id, id, dto.status);
     if (dto.status === 'APPROVED') await this.events.recalculateCurrent();
     return res;
+  }
+
+  // ---- Vị trí công ty ----
+  @Get('office')
+  office() {
+    return this.attendance.getOffice();
+  }
+
+  @Put('office')
+  updateOffice(@Body() dto: UpdateOfficeDto) {
+    return this.attendance.updateOffice(dto);
   }
 
   // ---- Chấm công ----

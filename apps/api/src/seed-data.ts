@@ -115,3 +115,11 @@ export const THANK_YOU_MESSAGES = [
 ];
 
 export const EMOJIS = ['💚', '🙏', '🌻', '✨', '☕', '🎉', '💪', '🌈'];
+
+/** Vị trí công ty (Google Maps: CÔNG TY CỔ PHẦN FADO GLOBAL) */
+export const OFFICE = {
+  name: 'CÔNG TY CỔ PHẦN FADO GLOBAL',
+  latitude: 10.8013241,
+  longitude: 106.6486898,
+  maxDistanceMeters: 200,
+};
